@@ -1,42 +1,43 @@
-import { KEY_PREFIX, REHYDRATE } from 'redux-persist/lib/constants';
-import { PersistConfig } from 'redux-persist/es/types';
-import { Store } from 'redux';
+"use strict";
 
-module.exports = function (store: Store, persistConfig: PersistConfig, crosstabConfig: CrosstabConfig = {}) {
-  const blacklist  = crosstabConfig.blacklist || null
-  const whitelist = crosstabConfig.whitelist || null
-  const keyPrefix = crosstabConfig.keyPrefix || KEY_PREFIX
+var _constants = require("redux-persist/lib/constants");
 
-  const { key } = persistConfig
+var _types = require("redux-persist/es/types");
 
-  window.addEventListener('storage', handleStorageEvent, false)
+var _redux = require("redux");
 
-  function handleStorageEvent (e) {
+module.exports = function (store, persistConfig) {
+  var crosstabConfig = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+  var blacklist = crosstabConfig.blacklist || null;
+  var whitelist = crosstabConfig.whitelist || null;
+  var keyPrefix = crosstabConfig.keyPrefix || _constants.KEY_PREFIX;
+  var key = persistConfig.key;
+  window.addEventListener('storage', handleStorageEvent, false);
+
+  function handleStorageEvent(e) {
     if (e.key && e.key.indexOf(keyPrefix) === 0) {
       if (e.oldValue === e.newValue) {
-        return
+        return;
       }
 
-      const statePartial = JSON.parse(e.newValue)
-
-      const state = Object.keys(statePartial).reduce((state, reducerKey) => {
+      var statePartial = JSON.parse(e.newValue);
+      var state = Object.keys(statePartial).reduce(function (state, reducerKey) {
         if (whitelist && whitelist.indexOf(reducerKey) === -1) {
-          return state
+          return state;
         }
+
         if (blacklist && blacklist.indexOf(reducerKey) !== -1) {
-          return state
+          return state;
         }
 
-        state[reducerKey] = JSON.parse(statePartial[reducerKey])
-
-        return state
-      }, {})
-
+        state[reducerKey] = JSON.parse(statePartial[reducerKey]);
+        return state;
+      }, {});
       store.dispatch({
-        key,
+        key: key,
         payload: state,
-        type: REHYDRATE,
-      })
+        type: _constants.REHYDRATE
+      });
     }
   }
-}
+};
